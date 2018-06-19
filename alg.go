@@ -1,4 +1,4 @@
-package common
+package utils
 
 func inner2find(startpos int, val int64, ids []int64) int {
 	if len(ids)/2 == 0 {

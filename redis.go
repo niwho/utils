@@ -1,4 +1,4 @@
-package common
+package utils
 
 import (
 	"fmt"
@@ -48,11 +48,9 @@ func NewRedisClient(address string, db int) *RedisClient {
 }
 
 func (rc *RedisClient) GetString(key string) (string, error) {
-	bt1 := time.Now()
 	conn := rc.pool.Get()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "getstring", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 
 	return redis.String(conn.Do("GET", key))
@@ -61,10 +59,8 @@ func (rc *RedisClient) GetString(key string) (string, error) {
 
 func (rc *RedisClient) SetString(key, val string, ex int) error {
 	conn := rc.pool.Get()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "setstring", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 
 	_, err := conn.Do("SET", key, val, "EX", ex)
@@ -74,10 +70,8 @@ func (rc *RedisClient) SetString(key, val string, ex int) error {
 
 func (rc *RedisClient) ZScore(key string, member string) (string, error) {
 	conn := rc.pool.Get()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "zscore", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 	return redis.String(conn.Do("ZSCORE", key, member))
 
@@ -85,10 +79,8 @@ func (rc *RedisClient) ZScore(key string, member string) (string, error) {
 
 func (rc *RedisClient) Remove(key string) {
 	conn := rc.pool.Get()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "remove", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 	conn.Do("DEL", key)
 
@@ -96,10 +88,8 @@ func (rc *RedisClient) Remove(key string) {
 
 func (rc *RedisClient) ZAdd(key string, members map[string]int64, ttl int) {
 	conn := rc.pool.Get()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "zadd", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 
 	batch_num := 100
@@ -133,10 +123,8 @@ func (rc *RedisClient) getConn() redis.Conn {
 
 func (rc *RedisClient) GetInt(key string) (int, error) {
 	conn := rc.getConn()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "getint", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 
 	return redis.Int(conn.Do("GET", key))
@@ -144,10 +132,8 @@ func (rc *RedisClient) GetInt(key string) (int, error) {
 
 func (rc *RedisClient) SetInt(key string, val int, ex time.Duration) error {
 	conn := rc.pool.Get()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "setint", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 
 	_, err := conn.Do("SET", key, val, "EX", int64(ex.Seconds()))
@@ -156,10 +142,8 @@ func (rc *RedisClient) SetInt(key string, val int, ex time.Duration) error {
 
 func (rc *RedisClient) GetInt64(key string) (int64, error) {
 	conn := rc.getConn()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "getiint64", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 
 	return redis.Int64(conn.Do("GET", key))
@@ -167,10 +151,8 @@ func (rc *RedisClient) GetInt64(key string) (int64, error) {
 
 func (rc *RedisClient) SetInt64(key string, val int64, ex time.Duration) error {
 	conn := rc.pool.Get()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "setint64", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 
 	_, err := conn.Do("SET", key, val, "EX", int64(ex.Seconds()))
@@ -179,10 +161,8 @@ func (rc *RedisClient) SetInt64(key string, val int64, ex time.Duration) error {
 
 func (rc *RedisClient) ZAddOne(key string, score int64, val string, limit int, ex time.Duration) error {
 	conn := rc.getConn()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "zaddone", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 
 	_, err := redis.Int(conn.Do("ZADD", key, score, val))
@@ -203,10 +183,8 @@ func (rc *RedisClient) ZAddOne(key string, score int64, val string, limit int, e
 
 func (rc *RedisClient) ZRange(key string, start int, stop int) ([]string, error) {
 	conn := rc.getConn()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "zrange", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 
 	reply, err := conn.Do("ZRANGE", key, start, stop)
@@ -216,10 +194,8 @@ func (rc *RedisClient) ZRange(key string, start int, stop int) ([]string, error)
 
 func (rc *RedisClient) ZRangeWithScore(key string, start int, stop int) (map[string]int64, error) {
 	conn := rc.getConn()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "zrangewithscore", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 
 	return redis.Int64Map(conn.Do("ZRANGE", key, start, stop, "WITHSCORES"))
@@ -227,10 +203,8 @@ func (rc *RedisClient) ZRangeWithScore(key string, start int, stop int) (map[str
 
 func (rc *RedisClient) ZRevRange(key string, start int, stop int) ([]string, error) {
 	conn := rc.getConn()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "zrevrange", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 
 	return redis.Strings(conn.Do("ZREVRANGE", key, start, stop))
@@ -238,10 +212,8 @@ func (rc *RedisClient) ZRevRange(key string, start int, stop int) ([]string, err
 
 func (rc *RedisClient) ZRemRangeByRank(key string, start int, stop int) (int, error) {
 	conn := rc.getConn()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "zremrangebyrank", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 
 	return redis.Int(conn.Do("ZREMRANGEBYRANK", key, start, stop))
@@ -249,10 +221,8 @@ func (rc *RedisClient) ZRemRangeByRank(key string, start int, stop int) (int, er
 
 func (rc *RedisClient) ZRem(key, member string) (int, error) {
 	conn := rc.getConn()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "zrem", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 
 	return redis.Int(conn.Do("ZREM", key, member))
@@ -260,10 +230,8 @@ func (rc *RedisClient) ZRem(key, member string) (int, error) {
 
 func (rc *RedisClient) ZAddAndTrim(key string, members map[string]int64, start int, stop int, ex time.Duration) error {
 	conn := rc.getConn()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "zaddandtrim", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 
 	args := []interface{}{key}
@@ -287,10 +255,8 @@ func (rc *RedisClient) ZAddAndTrim(key string, members map[string]int64, start i
 
 func (rc *RedisClient) HGet(key, member string) (interface{}, error) {
 	conn := rc.getConn()
-	bt1 := time.Now()
 	defer func() {
 		conn.Close()
-		MetricTimer(map[string]string{"method": "hget", "componnet": "redis"}, time.Since(bt1).Nanoseconds()/1e6)
 	}()
 
 	return conn.Do("HGET", key, member)
