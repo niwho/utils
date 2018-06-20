@@ -5,30 +5,39 @@ import (
 	"os"
 	"runtime"
 	"sync/atomic"
+	"time"
 )
-
-var AsyncJobIns *AsyncJob
-
-func InitAysncJob(workerNum int) {
-	AsyncJobIns = NewAsyncJob(workerNum)
-}
 
 // AsyncJob 异步写入, 考虑更通用的方式
 type AsyncJob struct {
 	ffs       chan func() error
+	dataCh    chan interface{}
 	stop      chan struct{}
+	stopFlag  bool
 	workerNum int
 	isRunning int32
+
+	batchNum  int
+	batchFunc func([]interface{})
+	wait      time.Duration
+
+	idleNum int32
 }
 
-func NewAsyncJob(workerNum int) *AsyncJob {
+func NewAsyncJob(workerNum, batchNum int, bf func([]interface{}), wait time.Duration) *AsyncJob {
 	af := &AsyncJob{
 		ffs:       make(chan func() error, 1024),
 		stop:      make(chan struct{}),
 		workerNum: workerNum,
+		dataCh:    make(chan interface{}, batchNum*workerNum),
+		batchNum:  batchNum,
 	}
+	af.batchFunc = bf
 	if workerNum <= 0 {
 		af.workerNum = 1
+	}
+	if af.wait <= 0 {
+		af.wait = 5 * time.Second
 	}
 	af.Run()
 
@@ -41,6 +50,10 @@ func (af *AsyncJob) cleanBuf() {
 		select {
 		case ff := <-af.ffs:
 			ff()
+		case dt, ok := <-af.dataCh:
+			if ok {
+				af.batchFunc([]interface{}{dt})
+			}
 		default:
 			return
 		}
@@ -58,19 +71,18 @@ func (af *AsyncJob) Run() {
 
 func (af *AsyncJob) runOuter() {
 	for {
-		select {
-		case <-af.stop:
-			af.stop <- struct{}{}
+		if af.stopFlag {
 			return
-		default:
-			af.runrun()
 		}
+		af.runrun()
 	}
 
 }
 
 func (af *AsyncJob) runrun() {
+	atomic.AddInt32(&af.idleNum, 1)
 	defer func() {
+		atomic.AddInt32(&af.idleNum, -1)
 		if err := recover(); err != nil {
 			const size = 64 << 20
 			buf := make([]byte, size)
@@ -78,23 +90,52 @@ func (af *AsyncJob) runrun() {
 			fmt.Printf("AsyncJob panic=%v\n%s\n", err, buf)
 		}
 	}()
+	var arr []interface{}
+	var ticker *time.Ticker = time.NewTicker(af.wait)
+	var tickerFlag bool
+
 	for {
 		select {
 		case ff, ok := <-af.ffs:
 			if !ok {
 				fmt.Fprintln(os.Stderr, "buf channel has been closed.")
+				// af.stop <- struct{}{}
+				time.Sleep(time.Second)
 				return
 			}
 			ff()
 		case <-af.stop:
 			af.cleanBuf()
+			af.stopFlag = true
 			af.stop <- struct{}{}
 			return
+		case dt, ok := <-af.dataCh:
+			if !ok {
+				fmt.Fprintln(os.Stderr, "dataCh channel has been closed.")
+				// af.stop <- struct{}{}
+				time.Sleep(time.Second)
+				return
+			}
+			if af.batchFunc != nil {
+				arr = append(arr, dt)
+			}
+		case <-ticker.C:
+			tickerFlag = true
+		}
+		if af.batchNum > 0 && af.batchFunc != nil {
+			if len(arr) > af.batchNum || (tickerFlag && len(arr) > 0) {
+				af.batchFunc(arr)
+				tickerFlag = false
+				arr = arr[:0]
+			}
 		}
 	}
 
 }
 
+func (af *AsyncJob) AddData(dt interface{}) {
+	af.dataCh <- dt
+}
 func (af *AsyncJob) AddJob(ff func() error) error {
 	select {
 	case af.ffs <- ff:
@@ -117,4 +158,12 @@ func (af *AsyncJob) Close() {
 	}
 	af.stop <- struct{}{}
 	<-af.stop
+	// 每个协程给一个编号，空闲计数
+	for {
+		if atomic.LoadInt32(&af.idleNum) == 0 {
+			break
+		}
+		fmt.Println("aysnc close", af.idleNum, af.stopFlag)
+		time.Sleep(100 * time.Millisecond)
+	}
 }
