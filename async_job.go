@@ -157,7 +157,7 @@ func (af *AsyncJob) Close() {
 		return
 	}
 	af.stop <- struct{}{}
-	<-af.stop
+	// <-af.stop // bug
 	// 每个协程给一个编号，空闲计数
 	for {
 		if atomic.LoadInt32(&af.idleNum) == 0 {
