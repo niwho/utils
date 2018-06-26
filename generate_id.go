@@ -41,7 +41,7 @@ func GenerateLogID() string {
 
 	dt := time.Now().Format("20060102150405")
 
-	u1 := uuid.NewV4()
+	u1, _ := uuid.NewV4()
 	urand := fmt.Sprintf("%d", binary.BigEndian.Uint64(u1.Bytes()))[:6]
 	return dt + fip + urand
 }
