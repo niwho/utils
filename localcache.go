@@ -48,6 +48,10 @@ func (localCache *LocalCache) SetWithTtl(key, val interface{}, ttl int) {
 	localCache.localCache.Add(key, val, time.Now().Add(time.Duration(ttl)*time.Second))
 }
 
+func (localCache *LocalCache) Len() int {
+	return localCache.localCache.Len()
+}
+
 // key=value 通用存储
 type CommonCache struct {
 	localCache inmem.Cache
@@ -88,4 +92,8 @@ func (localCache *CommonCache) Set(key, val interface{}) {
 
 func (localCache *CommonCache) SetWithTtl(key, val interface{}, ttl int) {
 	localCache.localCache.Add(key, val, time.Now().Add(time.Duration(ttl)*time.Second))
+}
+
+func (localCache *CommonCache) Len() int {
+	return localCache.localCache.Len()
 }

@@ -17,6 +17,14 @@ func (hp *Hadoop) New(address string) error {
 	return err
 }
 
+// 协程安全问题
+func (hp *Hadoop) Close() error {
+	if hp.client != nil {
+		return hp.client.Close()
+	}
+	return nil
+}
+
 func (hp *Hadoop) ReadTextFile(path string) ([]string, error) {
 	var lines []string
 	dat, err := hp.client.ReadDir(path)
