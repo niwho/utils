@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"os"
+	//	"os"
 	"runtime"
 	"sync/atomic"
 
@@ -87,7 +87,7 @@ func (kc *KafkaConsumer) runSandbox() {
 		select {
 		case msg, more := <-consumer.Messages():
 			if more {
-				fmt.Fprintf(os.Stdout, "%s/%d/%d\t%s\t%s\n", msg.Topic, msg.Partition, msg.Offset, msg.Key, msg.Value)
+				//fmt.Fprintf(os.Stdout, "%s/%d/%d\t%s\t%s\n", msg.Topic, msg.Partition, msg.Offset, msg.Key, msg.Value)
 				// 不管处理状态?
 				if kc.consumecb != nil {
 					kc.consumecb.Consume(msg)
