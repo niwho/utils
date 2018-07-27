@@ -98,6 +98,7 @@ type KafkaProducer struct {
 func NewKafkaProducer(addrs []string, topic string, bufSize int, timeout time.Duration, workerNum int) *KafkaProducer {
 	config := sarama.NewConfig()
 	config.Producer.Partitioner = sarama.NewRoundRobinPartitioner
+	config.Producer.MaxMessageBytes = 10000000 //10m
 	kw := &KafkaProducer{
 		addrs:     addrs,
 		topic:     topic,

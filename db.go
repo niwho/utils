@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
@@ -47,5 +48,6 @@ func (db *DBClient) initdb(maxConn, timeout int) error {
 	var err error
 	db.RealDb, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&timeout=100ms&readTimeout=%dms&writeTimeout=%dms", db.User, db.Password, db.Server, db.Name, timeout, timeout))
 	db.RealDb.DB().SetMaxOpenConns(maxConn)
+	db.RealDb.DB().SetConnMaxLifetime(300 * time.Second)
 	return err
 }
