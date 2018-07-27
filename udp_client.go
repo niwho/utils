@@ -25,7 +25,7 @@ type ApplicationMessage struct {
 
 func InitUdpClient(token string) {
 	udpClientIns = &UdpClient{
-		token: "9067aadfbee458e0d2e1f9876e898882aab5f5876f617634e7e84ec9be5bded0",
+		token: token,
 		addr:  "127.0.0.1:5678",
 	}
 	udpClientIns.conn, _ = net.DialTimeout("udp", udpClientIns.addr, time.Second*60)
