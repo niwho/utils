@@ -67,6 +67,14 @@ func (mdb *MongoDb) Find(col string, query interface{}, result interface{}, sort
 	return cloned.DB(mdb.db).C(col).Find(query).Sort(sortFileds...).Limit(99).All(result)
 }
 
+func (mdb *MongoDb) FindX(col string, query interface{}, result interface{}, count int, sortFileds ...string) error {
+	cloned := mdb.session.Clone()
+	defer func() {
+		cloned.Close()
+	}()
+	return cloned.DB(mdb.db).C(col).Find(query).Sort(sortFileds...).Limit(count).All(result)
+}
+
 func (mdb *MongoDb) FindAll(col string, query interface{}, result interface{}, sortFileds ...string) error {
 	cloned := mdb.session.Clone()
 	defer func() {
