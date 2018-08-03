@@ -3,7 +3,6 @@ package utils
 import (
 	"encoding/binary"
 	"fmt"
-	//"log"
 	"net"
 	"strings"
 	"time"

@@ -3,8 +3,6 @@ package utils
 import (
 	"fmt"
 	"net"
-
-	"code/maetimes/com/dokiutil/dokinet"
 )
 
 const METRIC_SERVICE_DEFAULT = "161.202.208.20:18694"
@@ -26,7 +24,7 @@ func InitMetrics(service, metricSrv string) (err error) {
 
 func commonTags(tags map[string]string) {
 	if _, found := tags["host"]; !found {
-		tags["host"] = dokinet.LookupIP()
+		tags["host"] = LookupIP()
 	}
 }
 
