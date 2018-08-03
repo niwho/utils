@@ -27,7 +27,7 @@ type AsyncJob struct {
 func NewAsyncJob(workerNum, batchNum int, bf func([]interface{}), wait time.Duration) *AsyncJob {
 	af := &AsyncJob{
 		ffs:       make(chan func() error, 1024),
-		stop:      make(chan struct{}),
+		stop:      make(chan struct{}, 1),
 		workerNum: workerNum,
 		dataCh:    make(chan interface{}, batchNum*workerNum),
 		batchNum:  batchNum,
