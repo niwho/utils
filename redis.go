@@ -57,6 +57,21 @@ func (rc *RedisClient) GetString(key string) (string, error) {
 
 }
 
+func (rc *RedisClient) MultiGetString(key []string) ([]string, error) {
+	conn := rc.pool.Get()
+	defer func() {
+		conn.Close()
+	}()
+
+	var keyInterface []interface{}
+	for _, val := range key{
+		keyInterface = append(keyInterface, val)
+	}
+
+	return redis.Strings(conn.Do("MGET", keyInterface...))
+
+}
+
 func (rc *RedisClient) SetString(key, val string, ex int) error {
 	conn := rc.pool.Get()
 	defer func() {
@@ -66,6 +81,26 @@ func (rc *RedisClient) SetString(key, val string, ex int) error {
 	_, err := conn.Do("SET", key, val, "EX", ex)
 	return err
 
+}
+
+func (rc *RedisClient) MultiSetString(members map[string]string, ex int) (err error) {
+	conn := rc.pool.Get()
+	defer func() {
+		conn.Close()
+	}()
+
+	for key, val := range members {
+		err := conn.Send("SET", key, val, "EX", ex)
+		if err != nil{
+			return err
+		}
+	}
+	err = conn.Flush()
+	if err != nil {
+		return
+	}
+	_, err = conn.Receive()
+	return
 }
 
 func (rc *RedisClient) ZScore(key string, member string) (string, error) {
