@@ -31,6 +31,29 @@ func GetLocalIP() string {
 	return "0.0.0.0"
 }
 
+func GetLocalIPWithPrefix(prefix string) string {
+	var localIP string
+	if localIP  != "" {
+		return localIP
+	}
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return "0.0.0.0"
+	}
+	for _, addr := range addrs {
+		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				localIP = ipnet.IP.String()
+				if strings.HasPrefix(localIP, prefix){
+					return localIP
+				}
+
+			}
+		}
+	}
+	return "0.0.0.0"
+}
+
 func GenerateLogID() string {
 	iparr := strings.Split(GetLocalIP(), ".")
 	fip := ""
