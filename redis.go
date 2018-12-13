@@ -57,7 +57,7 @@ func (rc *RedisClient) GetString(key string) (string, error) {
 
 }
 
-func (rc *RedisClient) Scan(pat string, offset) (keys []string, iter int) {
+func (rc *RedisClient) Scan(pat string, offset int) (keys []string, iter int) {
 	conn := rc.pool.Get()
 	defer func() {
 		conn.Close()
