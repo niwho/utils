@@ -63,7 +63,7 @@ func (rc *RedisClient) Scan(pat string, offset int) (keys []string, iter int) {
 		conn.Close()
 	}()
 
-	if arr, err := redis.MultiBulk(conn.Do("SCAN", fmt.Sprintf("%d match %s", offset, pat))); err == nil {
+	if arr, err := redis.MultiBulk(conn.Do("SCAN",  offset, "match",pat)); err == nil {
 		iter, _ = redis.Int(arr[0], nil)
 		keys, _ = redis.Strings(arr[1], nil)
 
