@@ -76,11 +76,12 @@ func (rc *RedisClient) GetAllKeys(pat string) (keys []string) {
 	iter := 0
 	for {
 		kks , iter := rc.Scan(pat, iter)
-		keys = append(keys, kks)
+		keys = append(keys, kks...)
 		if iter  == 0{
 			break
 		}
 	}
+	return
 }
 
 func (rc *RedisClient) MultiGetString(key []string) ([]string, error) {
