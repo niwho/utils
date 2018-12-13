@@ -63,11 +63,11 @@ func (rc *RedisClient) Scan(pat string, offset int) (keys []string, iter int) {
 		conn.Close()
 	}()
 
-	if arr, err := redis.MultiBulk(conn.Do("SCAN",  offset, "match",pat)); err == nil {
+	if arr, err := redis.MultiBulk(conn.Do("SCAN", offset, "match", pat)); err == nil {
 		iter, _ = redis.Int(arr[0], nil)
 		keys, _ = redis.Strings(arr[1], nil)
-
 	}
+	logs.Log(logs.F{"iter": iter, "keys": keys}).Debug("Scan")
 	return
 
 }
@@ -75,9 +75,10 @@ func (rc *RedisClient) Scan(pat string, offset int) (keys []string, iter int) {
 func (rc *RedisClient) GetAllKeys(pat string) (keys []string) {
 	iter := 0
 	for {
-		kks , iter := rc.Scan(pat, iter)
+		kks, iter := rc.Scan(pat, iter)
+		logs.Log(logs.F{"iter": iter, "kks": kks}).Debug("GetAllKeys")
 		keys = append(keys, kks...)
-		if iter  == 0{
+		if iter == 0 {
 			break
 		}
 	}
@@ -91,7 +92,7 @@ func (rc *RedisClient) MultiGetString(key []string) ([]string, error) {
 	}()
 
 	var keyInterface []interface{}
-	for _, val := range key{
+	for _, val := range key {
 		keyInterface = append(keyInterface, val)
 	}
 
@@ -118,7 +119,7 @@ func (rc *RedisClient) MultiSetString(members map[string]string, ex int) (err er
 
 	for key, val := range members {
 		err := conn.Send("SET", key, val, "EX", ex)
-		if err != nil{
+		if err != nil {
 			return err
 		}
 	}
