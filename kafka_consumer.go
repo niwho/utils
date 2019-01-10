@@ -56,7 +56,7 @@ func NewKafkaConsumerV2(brokers []string, topics []string, group string, workerN
 		stopCh:    make(chan struct{}),
 		workerNum: workerNum,
 		brokers:   brokers,
-		topics:    []string{topic},
+		topics:    topics,
 		config:    config,
 		group:     group,
 		consumecb: cb,
