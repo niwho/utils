@@ -45,6 +45,24 @@ func NewKafkaConsumer(brokers []string, topic, group string, workerNum int, cb C
 	}
 }
 
+func NewKafkaConsumerV2(brokers []string, topics []string, group string, workerNum int, cb ConsumerCallback) *KafkaConsumer {
+	config := cluster.NewConfig()
+	config.Consumer.Return.Errors = true
+	config.Group.Return.Notifications = true
+	config.Consumer.Offsets.Initial = sarama.OffsetNewest
+	config.Consumer.Offsets.Retention = 0
+
+	return &KafkaConsumer{
+		stopCh:    make(chan struct{}),
+		workerNum: workerNum,
+		brokers:   brokers,
+		topics:    []string{topic},
+		config:    config,
+		group:     group,
+		consumecb: cb,
+	}
+}
+
 func (kc *KafkaConsumer) Run() {
 
 	if !atomic.CompareAndSwapInt32(&kc.isRunning, 0, 1) &&
