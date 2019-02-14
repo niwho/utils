@@ -13,6 +13,7 @@ type AsyncJob struct {
 	ffs       chan func() error
 	dataCh    chan interface{}
 	stop      chan struct{}
+	flush     chan struct{}
 	stopFlag  bool
 	workerNum int
 	isRunning int32
@@ -28,6 +29,7 @@ func NewAsyncJob(workerNum, batchNum int, bf func([]interface{}), wait time.Dura
 	af := &AsyncJob{
 		ffs:       make(chan func() error, 1024),
 		stop:      make(chan struct{}, 1),
+		flush:     make(chan struct{}, 1),
 		workerNum: workerNum,
 		dataCh:    make(chan interface{}, batchNum*workerNum),
 		batchNum:  batchNum,
@@ -121,6 +123,9 @@ func (af *AsyncJob) runrun() {
 			}
 		case <-ticker.C:
 			tickerFlag = true
+		case <-af.flush:
+			tickerFlag = true
+
 		}
 		if af.batchNum > 0 && af.batchFunc != nil {
 			if len(arr) > af.batchNum || (tickerFlag && len(arr) > 0) {
@@ -131,6 +136,15 @@ func (af *AsyncJob) runrun() {
 		}
 	}
 
+}
+
+func (af *AsyncJob) Flush(dt interface{}) {
+	// 忽略同一时刻的多个
+	select {
+	case af.flush <- struct{}{}:
+	default:
+
+	}
 }
 
 func (af *AsyncJob) AddData(dt interface{}) {
