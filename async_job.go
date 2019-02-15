@@ -138,7 +138,7 @@ func (af *AsyncJob) runrun() {
 
 }
 
-func (af *AsyncJob) Flush(dt interface{}) {
+func (af *AsyncJob) Flush() {
 	// 忽略同一时刻的多个
 	select {
 	case af.flush <- struct{}{}:
