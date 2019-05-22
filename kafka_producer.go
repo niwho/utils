@@ -35,6 +35,13 @@ func SendMsgA(clientName string, key, data []byte) error {
 	return errors.New("not found")
 }
 
+func SendMsgAWithTopic(topic, clientName string, key, data []byte) error {
+	if cli, found := clients[clientName]; found {
+		return cli.AddMsgWithTopic(topic, key, data)
+	}
+	return errors.New("not found")
+}
+
 func SendLog(key, data []byte) error {
 	return kfkLogProducer.AddMsg(key, data)
 }
