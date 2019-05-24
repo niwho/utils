@@ -59,7 +59,7 @@ func NewDBClientV3(name, server, user, passwd string, maxConn int, timeout int, 
 
 func (db *DBClient) initdb(maxConn, timeout int, d time.Duration) error {
 	var err error
-	db.RealDb, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&timeout=100ms&readTimeout=%dms&writeTimeout=%dms", db.User, db.Password, db.Server, db.Name, timeout, timeout))
+	db.RealDb, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&timeout=500ms&readTimeout=%dms&writeTimeout=%dms", db.User, db.Password, db.Server, db.Name, timeout, timeout))
 	db.RealDb.DB().SetMaxOpenConns(maxConn)
 	db.RealDb.DB().SetConnMaxLifetime(d)
 	return err
