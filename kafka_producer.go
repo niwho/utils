@@ -183,12 +183,7 @@ func (kw *KafkaProducer) loop(worker sarama.AsyncProducer) {
 			select {
 			case worker.Input() <- msg:
 				logs.Log(nil).Info("[KafkaWorker]send msg to chain")
-			case err := <-worker.Errors():
-				logs.Log(nil).Errorf("error=%v msg='KafkaWorker send msg failed'", err)
-				return
-
 			}
-
 		case <-kw.stop:
 			//clean
 			logs.Log(nil).Debug("loop stop")
@@ -196,6 +191,8 @@ func (kw *KafkaProducer) loop(worker sarama.AsyncProducer) {
 			logs.Log(nil).Debug("loop stop after clean")
 			kw.stop <- struct{}{}
 			return
+		case err := <-worker.Errors():
+			logs.Log(nil).Errorf("error=%v msg='KafkaWorker send msg failed'", err)
 		}
 	}
 
