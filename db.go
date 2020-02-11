@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	_ "github.com/apache/calcite-avatica-go/v4"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 )
@@ -73,6 +74,22 @@ func NewDBClientV4(name, server, user, passwd string, maxConn int, connectTime i
 func (db *DBClient) initdb(maxConn, connectTime int, timeout int, d time.Duration) error {
 	var err error
 	db.RealDb, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&timeout=%dms&readTimeout=%dms&writeTimeout=%dms", db.User, db.Password, db.Server, db.Name, connectTime, timeout, timeout))
+	db.RealDb.DB().SetMaxOpenConns(maxConn)
+	db.RealDb.DB().SetConnMaxLifetime(d)
+	return err
+}
+
+func NewDBClientPhoenix(dataSourceName string, maxConn int, sessionDuration time.Duration) *DBClient {
+	c := &DBClient{}
+	if err := c.initdbPhoenix(dataSourceName, maxConn, sessionDuration); err != nil {
+		fmt.Errorf("db init error=%v", err)
+	}
+	return c
+}
+
+func (db *DBClient) initdbPhoenix(dataSourceName string, maxConn int, d time.Duration) error {
+	var err error
+	db.RealDb, err = gorm.Open("avatica", dataSourceName)
 	db.RealDb.DB().SetMaxOpenConns(maxConn)
 	db.RealDb.DB().SetConnMaxLifetime(d)
 	return err
