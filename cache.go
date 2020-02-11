@@ -45,11 +45,6 @@ func (cm *CacheManager) AddChains(chains ...GetData) {
 type GetData func(*CacheRequest)
 type GetDataChain []GetData
 
-const (
-	// 有符号，所以是一半
-	abortIndex int8 = math.MaxInt8 / 2
-)
-
 type CacheRequest struct {
 	index       int8
 	cacheChains GetDataChain
