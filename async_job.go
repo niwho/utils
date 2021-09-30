@@ -137,7 +137,7 @@ func (af *AsyncJob) runrun() {
 
 		}
 		if af.batchNum > 0 && af.batchFunc != nil {
-			if len(arr) > af.batchNum || (tickerFlag && len(arr) > 0) {
+			if len(arr) > af.batchNum-1 || (tickerFlag && len(arr) > 0) {
 				af.batchFunc(arr)
 				tickerFlag = false
 				arr = arr[:0]
