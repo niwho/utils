@@ -16,16 +16,16 @@ var IDFactory *snowflake.Node
 func InitIDFactory(node int64) (err error) {
 	IDFactory, err = snowflake.NewNode(node)
 	Default = &UIDFactory {
-	    IDFactory: IDFactory
+	    IDFactory: IDFactory,
 	}
 	return
 }
 
-func NewIDFactory(node int64) (*snowflake.Node, error) {
+func NewIDFactory(node int64) (*UIDFactory, error) {
 
-	factory, err = snowflake.NewNode(node)
+	factory, err := snowflake.NewNode(node)
 	return &UIDFactory {
-	    IDFactory: IDFactory
+	    IDFactory: factory,
 	}, err
 }
 
